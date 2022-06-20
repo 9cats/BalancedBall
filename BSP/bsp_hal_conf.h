@@ -1,0 +1,1 @@
+#define HAL_QSPI_MODULE_ENABLED

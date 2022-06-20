@@ -5,3 +5,4 @@
 /Middlewares/ST
 /MiddleWares/Third_Party/FreeRTOS
 /TouchGFX/build
+STM32H7xx_HAL_Driver
