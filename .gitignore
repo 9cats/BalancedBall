@@ -1,0 +1,7 @@
+/.settings
+/Drivers/CMSIS
+/Drivers/STM32H7xx_HAL_Driver
+/Debug/
+/Middlewares/ST
+/MiddleWares/Third_Party/FreeRTOS
+/TouchGFX/build
