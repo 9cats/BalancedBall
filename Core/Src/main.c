@@ -110,6 +110,7 @@ int main(void)
   QSPI_W25Qxx_ReadBuffer ((uint8_t *)&data, 0x00, 4);
   printf("\r\nRead Data: %ld\r\n", data);
   /* USER CODE END 2 */
+
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
