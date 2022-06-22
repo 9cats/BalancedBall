@@ -63,8 +63,6 @@ int __io_putchar(int ch)
     return ch;
 }
 
-uint32_t data = 0x12345678;
-
 /* USER CODE END 0 */
 
 /**
@@ -105,10 +103,11 @@ int main(void)
   MX_GPIO_Init();
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
-  QSPI_W25Qxx_BlockErase_32K(0x00);
-  QSPI_W25Qxx_WriteBuffer((uint8_t *)&data, 0x00, 4);
-  QSPI_W25Qxx_ReadBuffer ((uint8_t *)&data, 0x00, 4);
-  printf("\r\nRead Data: %ld\r\n", data);
+  /* FMC_NE1 : 0x6000 0000 ~ 0x6400 0000 */
+  volatile uint32_t data = 0;
+         *(uint32_t *)0x60000000 = 0x12345678;
+  data = *(uint32_t *)0x60000000;
+  (void)data;
   /* USER CODE END 2 */
 
   /* Infinite loop */
