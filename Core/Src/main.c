@@ -110,6 +110,8 @@ int main(void)
   MX_DCMI_Init();
   MX_I2C2_Init();
   /* USER CODE BEGIN 2 */
+  delay_init(480);
+
   LCD_SetColor(0xff333333);					//	设置画笔色，使用自定义颜色
   LCD_SetBackColor(0xffB9EDF8); 			//	设置背景色，使用自定义颜色
   LCD_Clear(); 									//	清屏，刷背景色
