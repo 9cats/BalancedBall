@@ -75,8 +75,8 @@ Reg_Info Sensor_Config[] =
 	{REG_USAT,		0x65},
 	{REG_VSAT,		0x65},
 	{REG_UVADJ0,	0x81},
-	{REG_SDE,		  0x20},	//黑白
-//	{REG_SDE,		  0x06},	//彩色	调节SDE这个寄存器还可以实现其他效果
+//	{REG_SDE,		  0x20},	//黑白
+	{REG_SDE,		  0x06},	//彩色	调节SDE这个寄存器还可以实现其他效果
 
     /*GAMMA config*/
 	{REG_GAM1,		0x0c},

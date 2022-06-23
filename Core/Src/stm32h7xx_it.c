@@ -206,7 +206,11 @@ void SysTick_Handler(void)
 void DMA1_Stream0_IRQHandler(void)
 {
   /* USER CODE BEGIN DMA1_Stream0_IRQn 0 */
-
+  extern void DCMI_DMA_XferCpltCallback(DMA_HandleTypeDef * hdma);
+  if(__HAL_DMA_GET_IT_SOURCE(&hdma_dcmi, DMA_IT_TC) != 0U)
+  {
+	  DCMI_DMA_XferCpltCallback(&hdma_dcmi);
+  }
   /* USER CODE END DMA1_Stream0_IRQn 0 */
   HAL_DMA_IRQHandler(&hdma_dcmi);
   /* USER CODE BEGIN DMA1_Stream0_IRQn 1 */
