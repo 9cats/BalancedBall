@@ -116,6 +116,8 @@ Reg_Info Sensor_Config[] =
 	//{REG_COM5,		0x31},	/*夜视环境帧率不变*/
 };
 
+
+
 uint8_t OV7725_REG_NUM = sizeof(Sensor_Config)/sizeof(Sensor_Config[0]);	  /*结构体数组成员数目*/
 
 void OV7725_Reset(void)
@@ -158,6 +160,7 @@ ErrorStatus OV7725_Init(void)
 				return ERROR;
 			}
 		}
+
 	}
 	else
 	{

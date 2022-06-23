@@ -69,7 +69,16 @@ int __io_putchar(int ch)
     return ch;
 }
 
-uint8_t frameBuffer[240][320];
+uint8_t frameBuffer[240][320][2];
+
+uint16_t Fix(uint8_t pixel[2])
+{
+	uint8_t R = pixel[0] >> 3;
+	uint8_t G = ((uint8_t)(pixel[0] << 5) >> 2) + (pixel[1] >> 5);
+	uint8_t B = (uint8_t)(pixel[1] << 3) >> 3;
+
+	return (uint16_t)(R << 11) + (uint16_t)(G << 5) + (uint16_t)B;
+}
 /* USER CODE END 0 */
 
 /**
@@ -136,7 +145,7 @@ int main(void)
 
   HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
   OV7725_Init();
-  HAL_DCMI_Start_DMA(&hdcmi, DCMI_MODE_CONTINUOUS, ((uint32_t)frameBuffer), 320*240);
+  HAL_DCMI_Start_DMA(&hdcmi, DCMI_MODE_CONTINUOUS, ((uint32_t)frameBuffer), 320*240/2);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -148,7 +157,23 @@ int main(void)
     /* USER CODE BEGIN 3 */
 	for(uint16_t i=0; i<320; i++) {
 		for(uint16_t j=0; j<240; j++) {
-			LCD_DrawPoint(i,j, frameBuffer[j][i]);
+
+//			uint8_t R_FIX = ((R&0x01)<<4) + ((R&0x02>>1)<<3) + ((R&0x04>>2)<<2) + ((R&0x08>>3)<<1) + ((R&0x10>>4));
+//			uint8_t G_FIX = ((G&0x01)<<5) + ((G&0x02>>1)<<4) + ((G&0x04>>2)<<3) + ((G&0x08>>3)<<2) + ((G&0x10>>4)<<1) + ((G&0x20>>5));
+//			uint8_t B_FIX = ((B&0x01)<<4) + ((B&0x02>>1)<<3) + ((B&0x04>>2)<<2) + ((B&0x08>>3)<<1) + ((B&0x10>>4));
+
+//			LCD_DrawPoint(i*2,j*2, ((uint16_t)R << (uint16_t)11) + ((uint16_t)G << (uint16_t)5) + (uint16_t)B);
+//			LCD_DrawPoint(i*2+1,j*2, ((uint16_t)R << (uint16_t)11) + ((uint16_t)G << (uint16_t)5) + (uint16_t)B);
+//			LCD_DrawPoint(i*2,j*2+1, ((uint16_t)R << (uint16_t)11) + ((uint16_t)G << (uint16_t)5) + (uint16_t)B);
+//			LCD_DrawPoint(i*2+1,j*2+1, ((uint16_t)R << (uint16_t)11) + ((uint16_t)G << (uint16_t)5) + (uint16_t)B);
+
+			LCD_DrawPoint(i*2  ,j*2  , Fix(frameBuffer[j][i]));
+			LCD_DrawPoint(i*2+1,j*2  , Fix(frameBuffer[j][i]));
+			LCD_DrawPoint(i*2  ,j*2+1, Fix(frameBuffer[j][i]));
+			LCD_DrawPoint(i*2+1,j*2+1, Fix(frameBuffer[j][i]));
+
+//			LCD_DrawPoint(i,j, R_FIX << 11 | G_FIX << 5 | B_FIX);
+//			LCD_DrawPoint(i,j, B_FIX << 11 | G_FIX << 5 | R_FIX);
 		}
 	}
   }
