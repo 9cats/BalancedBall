@@ -20,7 +20,8 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "dcmi.h"
-#include "i2c.h"
+#include "dma.h"
+#include "tim.h"
 #include "usart.h"
 #include "gpio.h"
 
@@ -68,6 +69,7 @@ int __io_putchar(int ch)
     return ch;
 }
 
+uint8_t frameBuffer[240][320];
 /* USER CODE END 0 */
 
 /**
@@ -107,8 +109,9 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_USART1_UART_Init();
+  MX_DMA_Init();
+  MX_TIM2_Init();
   MX_DCMI_Init();
-  MX_I2C2_Init();
   /* USER CODE BEGIN 2 */
   delay_init(480);
 
@@ -117,20 +120,23 @@ int main(void)
   LCD_Clear(); 									//	ÇåÆÁ£¬Ë¢±³¾°É«
 
   LCD_SetTextFont(&CH_Font32);
-  LCD_DisplayText( 42, 20,"µçÈÝ´¥Ãþ²âÊÔ");
-  LCD_DisplayText( 42, 70,"ºËÐÄ°åÐÍºÅ£ºFK743M1-IIT6");
-  LCD_DisplayText( 42, 120,"ÆÁÄ»·Ö±æÂÊ£º800*480");
-
-
-
-  LCD_DisplayString(44, 170,"X1:       Y1:");
-  LCD_DisplayString(44, 220,"X2:       Y2:");
-  LCD_DisplayString(44, 270,"X3:       Y3:");
-  LCD_DisplayString(44, 320,"X4:       Y4:");
-  LCD_DisplayString(44, 370,"X5:       Y5:");
+//  LCD_DisplayText( 42, 20,"µçÈÝ´¥Ãþ²âÊÔ");
+//  LCD_DisplayText( 42, 70,"ºËÐÄ°åÐÍºÅ£ºFK743M1-IIT6");
+//  LCD_DisplayText( 42, 120,"ÆÁÄ»·Ö±æÂÊ£º800*480");
+//
+//
+//
+//  LCD_DisplayString(44, 170,"X1:       Y1:");
+//  LCD_DisplayString(44, 220,"X2:       Y2:");
+//  LCD_DisplayString(44, 270,"X3:       Y3:");
+//  LCD_DisplayString(44, 320,"X4:       Y4:");
+//  LCD_DisplayString(44, 370,"X5:       Y5:");
 
   LCD_SetColor(LCD_RED);	//ÉèÖÃ»­±ÊÑÕÉ«
-  ov7725_init();
+
+  HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
+  OV7725_Init();
+  HAL_DCMI_Start_DMA(&hdcmi, DCMI_MODE_CONTINUOUS, ((uint32_t)frameBuffer), 320*240);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -140,7 +146,11 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-
+	for(uint16_t i=0; i<320; i++) {
+		for(uint16_t j=0; j<240; j++) {
+			LCD_DrawPoint(i,j, frameBuffer[j][i]);
+		}
+	}
   }
   /* USER CODE END 3 */
 }

@@ -66,6 +66,8 @@ void Error_Handler(void);
 #define OV7725_SDA_GPIO_Port GPIOC
 #define OV7725_SCL_Pin GPIO_PIN_3
 #define OV7725_SCL_GPIO_Port GPIOC
+#define OV7725_XCLK_Pin GPIO_PIN_5
+#define OV7725_XCLK_GPIO_Port GPIOA
 #define LED_Pin GPIO_PIN_7
 #define LED_GPIO_Port GPIOH
 /* USER CODE BEGIN Private defines */

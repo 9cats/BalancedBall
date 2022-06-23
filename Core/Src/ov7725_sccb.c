@@ -8,142 +8,248 @@
  * 修改记录 ：无
  ******************************************************************************/
 #include "ov7725_sccb.h"
-#include "delay.h"
 
-void SCCB_SDA_IN(void)
+#define DEV_ADR ADDR_OV7725 /*设备地址定义*/
+
+/**
+ * @brief  SCCB协议专用延时
+ * @param  无
+ * @retval 无
+ */
+static void sccb_delay(void)
 {
-	GPIO_InitTypeDef GPIO_InitStruct = {0};
-
-	GPIO_InitStruct.Pin = OV7725_SDA_Pin;
-	GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-//	GPIO_InitStruct.Pull = GPIO_PULLUP;
-	HAL_GPIO_Init(OV7725_SDA_GPIO_Port, &GPIO_InitStruct);
-}
-
-void SCCB_SDA_OUT(void)
-{
-	GPIO_InitTypeDef GPIO_InitStruct = {0};
-
-    GPIO_InitStruct.Pin = OV7725_SDA_Pin;
-	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
-//	GPIO_InitStruct.Pull = GPIO_PULLUP;
-	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-	HAL_GPIO_Init(OV7725_SDA_GPIO_Port, &GPIO_InitStruct);
-}
-
-void SCCB_Init(void)
-{
-}
-
-void SCCB_Start(void)
-{
-  SCCB_SDA(1); //数据线高电平
-  SCCB_SCL(1); //在时钟线高的时候数据线由高至低
-  delay_us(50);
-  SCCB_SDA(0);
-  delay_us(50);
-  SCCB_SCL(0); //数据线恢复低电平，单操作函数必要
-}
-
-void SCCB_Stop(void)
-{
-  SCCB_SDA(0);
-  delay_us(50);
-  SCCB_SCL(1);
-  delay_us(50);
-  SCCB_SDA(1);
-  delay_us(50);
-}
-
-void SCCB_No_Ack(void)
-{
-  delay_us(50);
-  SCCB_SDA(1);
-  SCCB_SCL(1);
-  delay_us(50);
-  SCCB_SCL(0);
-  delay_us(50);
-  SCCB_SDA(0);
-  delay_us(50);
-}
-
-uint8_t SCCB_WR_Byte(uint8_t dat)
-{
-  uint8_t j, res;
-  for (j = 0; j < 8; j++) //循环8次发送数据
+  uint16_t i = 480*25;
+  while (i)
   {
-    if (dat & 0x80)
-      SCCB_SDA(1);
+    i--;
+  }
+}
+
+/**
+ * @brief  SCCB起始信号
+ * @param  无
+ * @retval 无
+ */
+static int sccb_start(void)
+{
+  SDA_H;
+  SCL_H;
+  sccb_delay();
+  if (!SDA_read)
+    return DISABLE; /* SDA线为低电平则总线忙,退出 */
+  SDA_L;
+  sccb_delay();
+  if (SDA_read)
+    return DISABLE; /* SDA线为高电平则总线出错,退出 */
+  SDA_L;
+  sccb_delay();
+  return ENABLE;
+}
+
+/**
+ * @brief  SCCB停止信号
+ * @param  无
+ * @retval 无
+ */
+static void sccb_stop(void)
+{
+  SCL_L;
+  sccb_delay();
+  SDA_L;
+  sccb_delay();
+  SCL_H;
+  sccb_delay();
+  SDA_H;
+  sccb_delay();
+}
+
+/**
+ * @brief  SCCB应答
+ * @param  无
+ * @retval 无
+ */
+static void sccb_ack(void)
+{
+  SCL_L;
+  sccb_delay();
+  SDA_L;
+  sccb_delay();
+  SCL_H;
+  sccb_delay();
+  SCL_L;
+  sccb_delay();
+}
+
+/**
+ * @brief  SCCB 无应答
+ * @param  无
+ * @retval 无
+ */
+static void sccb_no_ack(void)
+{
+  SCL_L;
+  sccb_delay();
+  SDA_H;
+  sccb_delay();
+  SCL_H;
+  sccb_delay();
+  SCL_L;
+  sccb_delay();
+}
+
+/**
+ * @brief  SCCB 等待应答
+ * @param  无
+ * @retval 1：有ACK
+ *         0：无ACK
+ */
+static int sccb_wait_ack(void)
+{
+
+  SCL_L;
+  sccb_delay();
+  SDA_H;
+  sccb_delay();
+  SCL_H;
+  sccb_delay();
+
+  if (SDA_read)
+  {
+    SCL_L;
+    return DISABLE;
+  }
+  SCL_L;
+  return ENABLE;
+}
+
+/**
+ * @brief  数据从高位到低位
+ * @param  SendByte 发送的数据
+ * @retval 无
+ */
+static void sccb_send_byte(uint8_t SendByte)
+{
+  uint8_t i = 8;
+
+  while (i--)
+  {
+    SCL_L;
+    sccb_delay();
+    if (SendByte & 0x80)
+      SDA_H;
     else
-      SCCB_SDA(0);
-    dat <<= 1;
-    delay_us(50);
-    SCCB_SCL(1);
-    delay_us(50);
-    SCCB_SCL(0);
+      SDA_L;
+    SendByte <<= 1;
+    sccb_delay();
+    SCL_H;
+    sccb_delay();
   }
-  SCCB_SDA_IN(); //设置SDA为输入
-  delay_us(50);
-  SCCB_SCL(1); //接收第九位,以判断是否发送成功
-  delay_us(50);
-  if (SCCB_READ_SDA)
-    res = 1; // SDA=1发送失败，返回1
-  else
-    res = 0; // SDA=0发送成功，返回0
-  SCCB_SCL(0);
-  SCCB_SDA_OUT(); //设置SDA为输出
-  return res;
+  SCL_L;
 }
 
-uint8_t SCCB_RD_Byte(void)
+/**
+ * @brief  数据从高位到低位
+ * @param  无
+ * @retval SCCB总线返回的数据
+ */
+static int sccb_receive_byte(void)
 {
-  uint8_t temp = 0, j;
-  SCCB_SDA_IN();          //设置SDA为输入
-  for (j = 8; j > 0; j--) //循环8次接收数据
+  uint8_t i = 8;
+  uint8_t ReceiveByte = 0;
+
+  SDA_H;
+  while (i--)
   {
-    delay_us(50);
-    SCCB_SCL(1);
-    temp = temp << 1;
-    if (SCCB_READ_SDA)
-      temp++;
-    delay_us(50);
-    SCCB_SCL(0);
+    ReceiveByte <<= 1;
+    SCL_L;
+    sccb_delay();
+    SCL_H;
+    sccb_delay();
+
+    if (SDA_read)
+    {
+      ReceiveByte |= 0x01;
+    }
   }
-  SCCB_SDA_OUT(); //设置SDA为输出
-  return temp;
+  SCL_L;
+  return ReceiveByte;
 }
 
-uint8_t SCCB_WR_Reg(uint8_t reg, uint8_t data)
+/**
+ * @brief  写一字节数据
+ * @param  WriteAddress 待写入地址
+ * @param  SendByte     待写入数据
+ * @retval 无
+ */
+int sccb_write_byte(uint16_t WriteAddress, uint8_t SendByte)
 {
-  uint8_t res = 0;
-  SCCB_Start(); //启动SCCB传输
-  if (SCCB_WR_Byte(SCCB_ID))
-    res = 1; //写器件ID
-  delay_us(100);
-  if (SCCB_WR_Byte(reg))
-    res = 1; //写寄存器地址
-  delay_us(100);
-  if (SCCB_WR_Byte(data))
-    res = 1; //写数据
-  SCCB_Stop();
-  return res;
+  if (!sccb_start())
+  {
+    return DISABLE;
+  }
+  sccb_send_byte(DEV_ADR); /* 器件地址 */
+  if (!sccb_wait_ack())
+  {
+    sccb_stop();
+    return DISABLE;
+  }
+
+  sccb_send_byte((uint8_t)(WriteAddress & 0x00FF)); /* 设置低起始地址 */
+  sccb_wait_ack();
+  sccb_send_byte(SendByte);
+  sccb_wait_ack();
+  sccb_stop();
+  return ENABLE;
 }
-uint8_t SCCB_RD_Reg(uint8_t reg)
+
+/**
+ * @brief  读取一串数据
+ * @param  pBuffer     存放读出数据
+ * @param  ReadAddress 待读出地址
+ * @retval 1：成功读入
+ *         2：失败
+ */
+int sccb_read_byte(uint8_t *pBuffer, uint16_t length, uint8_t ReadAddress)
 {
-  uint8_t val = 0;
-  SCCB_Start();          //启动SCCB传输
-  SCCB_WR_Byte(SCCB_ID); //写器件ID
-  delay_us(100);
-  SCCB_WR_Byte(reg); //写寄存器地址
-  delay_us(100);
-  SCCB_Stop();
-  delay_us(100);
-  //设置寄存器地址后，才是读
-  SCCB_Start();
-  SCCB_WR_Byte(SCCB_ID | 0X01); //发送读命令
-  delay_us(100);
-  val = SCCB_RD_Byte(); //读取数据
-  SCCB_No_Ack();
-  SCCB_Stop();
-  return val;
+  if (!sccb_start())
+  {
+    return DISABLE;
+  }
+  sccb_send_byte(DEV_ADR); /* 器件地址 */
+  if (!sccb_wait_ack())
+  {
+    sccb_stop();
+    return DISABLE;
+  }
+  sccb_send_byte(ReadAddress); /* 设置低起始地址 */
+  sccb_wait_ack();
+  sccb_stop();
+
+  if (!sccb_start())
+  {
+    return DISABLE;
+  }
+  sccb_send_byte(DEV_ADR + 1); /* 器件地址 */
+  if (!sccb_wait_ack())
+  {
+    sccb_stop();
+    return DISABLE;
+  }
+  while (length)
+  {
+    *pBuffer = sccb_receive_byte();
+    if (length == 1)
+    {
+      sccb_no_ack();
+    }
+    else
+    {
+      sccb_ack();
+    }
+    pBuffer++;
+    length--;
+  }
+  sccb_stop();
+  return ENABLE;
 }
+/*********************************************END OF FILE**********************/
