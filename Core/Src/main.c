@@ -69,13 +69,19 @@ int __io_putchar(int ch)
     return ch;
 }
 
-uint8_t frameBuffer[240][320][2];
+uint8_t frameBuffer[240][240][2];
 
 uint16_t Fix(uint8_t pixel[2])
 {
 	uint8_t R = pixel[0] >> 3;
 	uint8_t G = ((uint8_t)(pixel[0] << 5) >> 2) + (pixel[1] >> 5);
 	uint8_t B = (uint8_t)(pixel[1] << 3) >> 3;
+
+	uint8_t Gray = ((R << 1) + G + (B << 1))/3;
+
+	R = Gray >> 1;
+	G = Gray;
+	B = Gray >> 1;
 
 	return (uint16_t)(R << 11) + (uint16_t)(G << 5) + (uint16_t)B;
 }
@@ -125,7 +131,7 @@ int main(void)
   delay_init(480);
 
   LCD_SetColor(0xff333333);					//	设置画笔色，使用自定义颜色
-  LCD_SetBackColor(0xffB9EDF8); 			//	设置背景色，使用自定义颜色
+  LCD_SetBackColor(0xff00ff); 			//	设置背景色，使用自定义颜色
   LCD_Clear(); 									//	清屏，刷背景色
 
   LCD_SetTextFont(&CH_Font32);
@@ -145,7 +151,7 @@ int main(void)
 
   HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
   OV7725_Init();
-  HAL_DCMI_Start_DMA(&hdcmi, DCMI_MODE_CONTINUOUS, ((uint32_t)frameBuffer), 320*240/2);
+  HAL_DCMI_Start_DMA(&hdcmi, DCMI_MODE_CONTINUOUS, ((uint32_t)frameBuffer), 240*240/2);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -222,9 +228,10 @@ void SystemClock_Config(void)
 void DCMI_DMA_XferCpltCallback(DMA_HandleTypeDef * hdma)
 {
 	HAL_DCMI_Stop(&hdcmi);
-	for(uint16_t i=0; i<320; i++) {
+	for(uint16_t i=0; i<240; i++) {
 		for(uint16_t j=0; j<240; j++) {
-			uint8_t data[2] = {frameBuffer[j][i][1], frameBuffer[j][i][0]};
+//			uint8_t data[2] = {frameBuffer[j][i][1], frameBuffer[j][i][0]};
+			uint16_t data = Fix(frameBuffer[j][i]);
 
 			LCD_DrawPoint(i*2  ,j*2  , *(uint16_t *)&data);
 			LCD_DrawPoint(i*2+1,j*2  , *(uint16_t *)&data);
@@ -232,7 +239,7 @@ void DCMI_DMA_XferCpltCallback(DMA_HandleTypeDef * hdma)
 			LCD_DrawPoint(i*2+1,j*2+1, *(uint16_t *)&data);
 		}
 	}
-	HAL_DCMI_Start_DMA(&hdcmi, DCMI_MODE_CONTINUOUS, ((uint32_t)frameBuffer), 320*240/2);
+	HAL_DCMI_Start_DMA(&hdcmi, DCMI_MODE_CONTINUOUS, ((uint32_t)frameBuffer), 240*240/2);
 }
 
 void HAL_DCMI_FrameEventCallback(DCMI_HandleTypeDef *hdcmi)

@@ -23,13 +23,13 @@ Reg_Info Sensor_Config[] =
 {
 	{REG_CLKRC,     0x00}, /*clock config*/
 	{REG_COM7,      0x46}, /*QVGA RGB565 */
-	{REG_HSTART,    0x3f},
-	{REG_HSIZE,     0x50},
-	{REG_VSTRT,     0x03},
-	{REG_VSIZE,     0x78},
+	{REG_HSTART,    0x3f}, // 3f = 63
+	{REG_HSIZE,     0x3C}, // 50 = 80
+	{REG_VSTRT,     0x03}, // 03 = 03
+	{REG_VSIZE,     0x78}, // 78 = 120
 	{REG_HREF,      0x00},
-	{REG_HOutSize,  0x50},
-	{REG_VOutSize,  0x78},
+	{REG_HOutSize,  0x3C}, // 50 = 80
+	{REG_VOutSize,  0x78}, // 78 = 120
 	{REG_EXHCH,     0x00},
 
 
