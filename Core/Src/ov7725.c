@@ -44,7 +44,7 @@ Reg_Info Sensor_Config[] =
 
 	/*AGC AEC AWB*/
 	{REG_COM8,		0xf0},
-	{REG_COM4,		0x81}, /*Pll AEC CONFIG*/
+	{REG_COM4,		0xC1}, /*Pll AEC CONFIG*/
 	{REG_COM6,		0xc5},
 	{REG_COM9,		0x21},
 	{REG_BDBase,	0xFF},
@@ -112,8 +112,8 @@ Reg_Info Sensor_Config[] =
 	{REG_COM3,		0xd0},/*Horizontal mirror image*/
 
 	/*night mode auto frame rate control*/
-	{REG_COM5,		0xf5},	 /*在夜视环境下，自动降低帧率，保证低照度画面质量*/
-	//{REG_COM5,		0x31},	/*夜视环境帧率不变*/
+//	{REG_COM5,		0xf5},	 /*在夜视环境下，自动降低帧率，保证低照度画面质量*/
+	{REG_COM5,		0x31},	/*夜视环境帧率不变*/
 };
 
 

@@ -77,7 +77,7 @@ uint16_t Fix(uint8_t pixel[2])
 	uint8_t G = ((uint8_t)(pixel[0] << 5) >> 2) + (pixel[1] >> 5);
 	uint8_t B = (uint8_t)(pixel[1] << 3) >> 3;
 
-	uint8_t Gray = ((R << 1) + G + (B << 1))/3;
+	uint8_t Gray = ((R << 1) + G + (B << 1))/3; //灰度值
 
 	R = Gray >> 1;
 	G = Gray;
@@ -227,11 +227,27 @@ void SystemClock_Config(void)
 
 void DCMI_DMA_XferCpltCallback(DMA_HandleTypeDef * hdma)
 {
-	HAL_DCMI_Stop(&hdcmi);
+//	HAL_DCMI_Stop(&hdcmi);
+//	for(uint16_t i=0; i<240; i++) {
+//		for(uint16_t j=0; j<240; j++) {
+////			uint8_t data[2] = {frameBuffer[j][i][1], frameBuffer[j][i][0]};
+//			uint16_t data = Fix(frameBuffer[j][i]);
+//
+//			LCD_DrawPoint(i*2  ,j*2  , *(uint16_t *)&data);
+//			LCD_DrawPoint(i*2+1,j*2  , *(uint16_t *)&data);
+//			LCD_DrawPoint(i*2  ,j*2+1, *(uint16_t *)&data);
+//			LCD_DrawPoint(i*2+1,j*2+1, *(uint16_t *)&data);
+//		}
+//	}
+//	HAL_DCMI_Start_DMA(&hdcmi, DCMI_MODE_CONTINUOUS, ((uint32_t)frameBuffer), 240*240/2);
+}
+
+void HAL_DCMI_FrameEventCallback(DCMI_HandleTypeDef *hdcmi)
+{
 	for(uint16_t i=0; i<240; i++) {
 		for(uint16_t j=0; j<240; j++) {
-//			uint8_t data[2] = {frameBuffer[j][i][1], frameBuffer[j][i][0]};
-			uint16_t data = Fix(frameBuffer[j][i]);
+//			uint8_t data[2] = {frameBuffer[j][i][1], frameBuffer[j][i][0]}; 	//原始图像
+			uint16_t data = Fix(frameBuffer[j][i]);								//转灰度值图像
 
 			LCD_DrawPoint(i*2  ,j*2  , *(uint16_t *)&data);
 			LCD_DrawPoint(i*2+1,j*2  , *(uint16_t *)&data);
@@ -239,11 +255,6 @@ void DCMI_DMA_XferCpltCallback(DMA_HandleTypeDef * hdma)
 			LCD_DrawPoint(i*2+1,j*2+1, *(uint16_t *)&data);
 		}
 	}
-	HAL_DCMI_Start_DMA(&hdcmi, DCMI_MODE_CONTINUOUS, ((uint32_t)frameBuffer), 240*240/2);
-}
-
-void HAL_DCMI_FrameEventCallback(DCMI_HandleTypeDef *hdcmi)
-{
   /* Prevent unused argument(s) compilation warning */
 }
 
