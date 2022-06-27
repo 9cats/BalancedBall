@@ -1,12 +1,4 @@
-/*********************** HNIT 3103 Application Team **************************
- * 文 件 名 ：hnit_ov7725.c
- * 描    述 ：ov7725摄像头驱动
- * 实验平台 ：STM32F407开发板
- * 库 版 本 ：ST1.4.0
- * 时    间 ：2016.04.08
- * 作    者 ：3103创新团队 王昱霏
- * 修改记录 ：无
-******************************************************************************/
+
 #include "ov7725_sccb.h"
 #include "ov7725.h"
 #include "delay.h"
@@ -14,111 +6,99 @@
 
 typedef struct Reg
 {
-	uint8_t Address;			       /*寄存器地址*/
-	uint8_t Value;		           /*寄存器值*/
+	uint8_t Address;
+	uint8_t Value;
 }Reg_Info;
 
-/* 寄存器参数配置 */
+/* 锟侥达拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷 */
 Reg_Info Sensor_Config[] =
 {
-	{REG_CLKRC,     0x00}, /*clock config*/
-	{REG_COM7,      0x46}, /*QVGA RGB565 */
-	{REG_HSTART,    0x3f}, // 3f = 63
-	{REG_HSIZE,     0x3C}, // 50 = 80
-	{REG_VSTRT,     0x03}, // 03 = 03
-	{REG_VSIZE,     0x78}, // 78 = 120
-	{REG_HREF,      0x00},
-	{REG_HOutSize,  0x3C}, // 50 = 80
-	{REG_VOutSize,  0x78}, // 78 = 120
-	{REG_EXHCH,     0x00},
+        {0x11,0x00},//CLKRC
+        {0x12,0x46},//COM7
+        {0x17,0x3f},//HSTART
+        {0x18,0x50},//HSIZE
+        {0x19,0x03},//VSTRT
+        {0x1a,0x78},//VSIZE
+        {0x32,0x00},//HREF
+        {0x29,0xa0},//HOutSize
+        {0x2c,0xf0},//VOutSize
+        {0x2a,0x00},//EXHCH
 
+        {0x0c,0xd0},//COM3
+        {0x42,0x7f},//TGT_B
+        {0x4d,0x00},//FixGain 09
+        {0x63,0xf0},//AWB_Ctrl0 e0
+        {0x64,0xff},//DSP_Ctrl1 ff
+        {0x65,0x20},//DSP_Ctrl2 20
+        {0x66,0x00},//DSP_Ctrl3 00
+        {0x67,0x00},//DSP_Ctrl4 00
 
-	/*DSP control*/
-	{REG_TGT_B,     0x7f},
-	{REG_FixGain,   0x09},
-	{REG_AWB_Ctrl0, 0xe0},
-	{REG_DSP_Ctrl1, 0xff},
-	{REG_DSP_Ctrl2, 0x20},
-	{REG_DSP_Ctrl3,	0x00},
-	{REG_DSP_Ctrl4, 0x00},
+        {0x13,0xff},//COM8  f0
+        {0x0d,0xf0},//COM4  41 82
+        {0x0f,0x01},//COM6  c5
+        {0x14,0x06},//COM9  21
+        {0x22,0xaf},//BDBase 7f 99 af ff
+        {0x23,0x01},//BDMStep 03
+        {0x24,0x75},//AEW 34
+        {0x25,0x63},//AEB 3c
+        {0x26,0xd1},//VPT a1
+        {0x2b,0xff},//EXHCL 00
+        {0x6b,0xaa},//AWBCtrl3
+        {0x13,0xff},//COM8
+        {0x69,0x50},//AWBCtrl1 5d
 
-	/*AGC AEC AWB*/
-	{REG_COM8,		0xf0},
-	{REG_COM4,		0xC1}, /*Pll AEC CONFIG*/
-	{REG_COM6,		0xc5},
-	{REG_COM9,		0x21},
-	{REG_BDBase,	0xFF},
-	{REG_BDMStep,	0x01},
-	{REG_AEW,		0x34},
-	{REG_AEB,		0x3c},
-	{REG_VPT,		0xa1},
-	{REG_EXHCL,		0x00},
-	{REG_AWBCtrl3,  0xaa},
-	{REG_COM8,		0xff},
-	{REG_AWBCtrl1,  0x5d},
+        {0x90,0x0a},//EDGE1
+        {0x91,0x01},//DNSOff
+        {0x92,0x01},//EDGE2
+        {0x93,0x01},//EDGE3
+        {0x94,0x2c},//MTX1 5f
+        {0x95,0x24},//MTX2 53
+        {0x96,0x08},//MTX3 11
+        {0x97,0x14},//MTX4 1a
+        {0x98,0x24},//MTX5 3d
+        {0x99,0x38},//MTX6 5a
+        {0x9a,0x9e},//MTX_Ctrl 1e
 
-	{REG_EDGE1,		0x0a},
-	{REG_DNSOff,	0x01},
-	{REG_EDGE2,		0x01},
-	{REG_EDGE3,		0x01},
+        {0x9b,0x00},//BRIGHT 80
+        {0x9c,0x20},//CNST 25 30
+        {0xa7,0x40},//USAT 65
+        {0xa8,0x40},//VSAT 65
+        {0x9e,0x11},//UVADJ0 81
+        {0xa6,0x06},//SDE 06  黑白
+        {0x7e,0x0c},//GAM1
+        {0x7f,0x16},//GAM2
+        {0x80,0x2a},//GAM3
+        {0x81,0x4e},//GAM4
+        {0x82,0x61},//GAM5
+        {0x83,0x6f},//GAM6
+        {0x84,0x7b},//GAM7
+        {0x85,0x86},//GAM8
+        {0x86,0x8e},//GAM9
+        {0x87,0x97},//GAM10
+        {0x88,0xa4},//GAM11
+        {0x89,0xaf},//GAM12
+        {0x8a,0xc5},//GAM13
+        {0x8b,0xd7},//GAM14
+        {0x8c,0xe8},//GAM15
+        {0x8d,0x20},//SLOP
+        {0xa9,0x80},//HUECOS
+        {0xaa,0x80},//HUESIN
 
-	{REG_MTX1,		0x5f},
-	{REG_MTX2,		0x53},
-	{REG_MTX3,		0x11},
-	{REG_MTX4,		0x1a},
-	{REG_MTX5,		0x3d},
-	{REG_MTX6,		0x5a},
-	{REG_MTX_Ctrl,  0x1e},
-
-	{REG_BRIGHT,	0x00},
-	{REG_CNST,		0x25},
-	{REG_USAT,		0x65},
-	{REG_VSAT,		0x65},
-	{REG_UVADJ0,	0x81},
-//	{REG_SDE,		  0x20},	//黑白
-	{REG_SDE,		  0x06},	//彩色	调节SDE这个寄存器还可以实现其他效果
-
-    /*GAMMA config*/
-	{REG_GAM1,		0x0c},
-	{REG_GAM2,		0x16},
-	{REG_GAM3,		0x2a},
-	{REG_GAM4,		0x4e},
-	{REG_GAM5,		0x61},
-	{REG_GAM6,		0x6f},
-	{REG_GAM7,		0x7b},
-	{REG_GAM8,		0x86},
-	{REG_GAM9,		0x8e},
-	{REG_GAM10,		0x97},
-	{REG_GAM11,		0xa4},
-	{REG_GAM12,		0xaf},
-	{REG_GAM13,		0xc5},
-	{REG_GAM14,		0xd7},
-	{REG_GAM15,		0xe8},
-	{REG_SLOP,		0x20},
-
-	{REG_HUECOS,	0x80},
-	{REG_HUESIN,	0x80},
-	{REG_DSPAuto,	0xff},
-	{REG_DM_LNL,	0x00},
-	{REG_BDBase,	0x99},
-	{REG_BDMStep,	0x03},
-	{REG_LC_RADI,	0x00},
-	{REG_LC_COEF,	0x13},
-	{REG_LC_XC,		0x08},
-	{REG_LC_COEFB,  0x14},
-	{REG_LC_COEFR,  0x17},
-	{REG_LC_CTR,	0x05},
-
-	{REG_COM3,		0xd0},/*Horizontal mirror image*/
-
-	/*night mode auto frame rate control*/
-//	{REG_COM5,		0xf5},	 /*在夜视环境下，自动降低帧率，保证低照度画面质量*/
-	{REG_COM5,		0x31},	/*夜视环境帧率不变*/
+        {0xac,0xff},//DSPAuto
+        {0x33,0x00},//DM_LNL   40
+        {0x22,0x99},//BDBase
+        {0x23,0x03},//BDMStep
+        {0x4a,0x00},//LC_RADI
+        {0x49,0x13},//LC_COEF
+        {0x47,0x08},//LC_XC
+        {0x4b,0x14},//LC_COEFB
+        {0x4c,0x17},//LC_COEFR
+        {0x46,0x05},//LC_CTR
 };
 
 
 
-uint8_t OV7725_REG_NUM = sizeof(Sensor_Config)/sizeof(Sensor_Config[0]);	  /*结构体数组成员数目*/
+uint8_t OV7725_REG_NUM = sizeof(Sensor_Config)/sizeof(Sensor_Config[0]);
 
 void OV7725_Reset(void)
 {
@@ -137,13 +117,13 @@ ErrorStatus OV7725_Init(void)
 	HAL_Delay(100);
 	//DEBUG("ov7725 Register Config Start......");
 
-	if( 0 == sccb_write_byte ( 0x12, 0x80 ) ) /*复位sensor */
+	if( 0 == sccb_write_byte ( 0x12, 0x80 ) ) /*锟斤拷位sensor */
 	{
 		//DEBUG("sccb write data error");
 		return ERROR ;
 	}
 
-	if( 0 == sccb_read_byte( &Sensor_IDCode, 1, 0x0b ) )	 /* 读取sensor ID号*/
+	if( 0 == sccb_read_byte( &Sensor_IDCode, 1, 0x0b ) )	 /* 锟斤拷取sensor ID锟斤拷*/
 	{
 		//DEBUG("read id faild");
 		return ERROR;

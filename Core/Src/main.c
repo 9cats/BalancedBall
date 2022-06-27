@@ -69,7 +69,7 @@ int __io_putchar(int ch)
     return ch;
 }
 
-uint8_t frameBuffer[240][240][2];
+uint8_t frameBuffer[240][320][2];
 
 uint16_t Fix(uint8_t pixel[2])
 {
@@ -151,7 +151,7 @@ int main(void)
 
   HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
   OV7725_Init();
-  HAL_DCMI_Start_DMA(&hdcmi, DCMI_MODE_CONTINUOUS, ((uint32_t)frameBuffer), 240*240/2);
+  HAL_DCMI_Start_DMA(&hdcmi, DCMI_MODE_CONTINUOUS, ((uint32_t)frameBuffer), 320*240/2);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -245,9 +245,9 @@ void DCMI_DMA_XferCpltCallback(DMA_HandleTypeDef * hdma)
 void HAL_DCMI_FrameEventCallback(DCMI_HandleTypeDef *hdcmi)
 {
 	for(uint16_t i=0; i<240; i++) {
-		for(uint16_t j=0; j<240; j++) {
-//			uint8_t data[2] = {frameBuffer[j][i][1], frameBuffer[j][i][0]}; 	//原始图像
-			uint16_t data = Fix(frameBuffer[j][i]);								//转灰度值图像
+		for(uint16_t j=0; j<320; j++) {
+			uint8_t data[2] = {frameBuffer[j][i][1], frameBuffer[j][i][0]}; 	//原始图像
+//			uint16_t data = Fix(frameBuffer[j][i]);								//转灰度值图像
 
 			LCD_DrawPoint(i*2  ,j*2  , *(uint16_t *)&data);
 			LCD_DrawPoint(i*2+1,j*2  , *(uint16_t *)&data);
